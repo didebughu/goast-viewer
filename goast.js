@@ -6,23 +6,44 @@ var goastapp = angular.module('goast', ['ui.tree'], function($rootScopeProvider)
 // ---------
 goastapp.directive('fileChange', function () {
 
-    var linker = function ($scope, element, attributes) {
-        // onChange, push the files to $scope.files.
-        element.bind('change', function (event) {
-            var files = event.target.files;
-            $scope.$apply(function () {
-                 $scope.sourcefile = files[0];
-            });
-        });
-    };
+  var linker = function ($scope, element, attributes) {
+    // 获取文本区域元素
+    var textareaElement = document.getElementById("code");
 
-    return {
-        restrict: 'A',
-        link: linker
-    };
+    // onChange, push the files to $scope.sourcefile and read file content
+    element.bind('change', function (event) {
+      var files = event.target.files;
+      $scope.$apply(function () {
+        $scope.sourcefile = files[0];
+
+        // 使用 FileReader 读取文件内容
+        var reader = new FileReader();
+        reader.onload = function(e) {
+          var fileContent = e.target.result;
+
+          // 将文件内容设置到 $scope.source 变量中
+          $scope.$apply(function () {
+            $scope.source = fileContent;
+          });
+        };
+
+        // 读取文件内容
+        reader.readAsText(files[0]);
+      });
+    });
+
+    // 监听 $scope.source 变量的变化，将内容设置到文本区域中
+    $scope.$watch('source', function(newSource) {
+      textareaElement.value = newSource;
+    });
+  };
+
+  return {
+    restrict: 'A',
+    link: linker
+  };
 
 });
-
 
 // Factory
 // -------
